@@ -7,7 +7,6 @@ import (
 )
 
 func main() {
-
 	apiUrl := "https://ws.audioscrobbler.com/2.0/"
 
 	pwd, err := os.Getwd()
