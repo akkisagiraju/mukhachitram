@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-	apiUrl := "https://ws.audioscrobbler.com/2.0/"
 
 	err := godotenv.Load(".env")
 
@@ -36,25 +35,25 @@ func main() {
 	// loop through all the available directors inside pwd
 	for _, file := range files {
 		if file.IsDir() && file.Name() != ".git" {
-			fmt.Println(file.Name())
-			// make a get request to lastFM api with the directory name
-			us := apiUrl + "?method=album.search&album=" + url.QueryEscape(file.Name()) + "&api_key=" + os.Getenv("APIKEY") + "&limit=1&format=json"
-			resp, err := http.Get(us)
-			if err != nil {
-				log.Fatal(err)
-			}
-			body, err := io.ReadAll(resp.Body)
-			defer resp.Body.Close()
-
-			j := make(map[string]interface{})
-			json.Unmarshal(body, &j)
-
-			// download the album art that comes back in the response
-			// save the image inside the corresponding directory
-
-			fmt.Println(j)
+			fmt.Println(fetchAlbumDetails(file.Name()))
 		}
+	}
+}
 
+func fetchAlbumDetails(name string) map[string]interface{} {
+	apiUrl := "https://ws.audioscrobbler.com/2.0/"
+	us := apiUrl + "?method=album.search&album=" + url.QueryEscape(name) + "&api_key=" + os.Getenv("APIKEY") + "&limit=1&format=json"
+
+	resp, err := http.Get(us)
+	if err != nil {
+		log.Fatal(err)
 	}
 
+	body, err := io.ReadAll(resp.Body)
+	defer resp.Body.Close()
+
+	j := make(map[string]interface{})
+	json.Unmarshal(body, &j)
+
+	return j
 }
