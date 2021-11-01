@@ -8,11 +8,18 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	apiUrl := "https://ws.audioscrobbler.com/2.0/"
-	apiKey := "f903a951a921d28526b76d92c23402fb"
+
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	// get pwd
 	pwd, err := os.Getwd()
@@ -30,8 +37,8 @@ func main() {
 	for _, file := range files {
 		if file.IsDir() && file.Name() != ".git" {
 			fmt.Println(file.Name())
-			us := apiUrl + "?method=album.search&album=" + url.QueryEscape(file.Name()) + "&api_key=" + apiKey + "&limit=1&format=json"
 			// make a get request to lastFM api with the directory name
+			us := apiUrl + "?method=album.search&album=" + url.QueryEscape(file.Name()) + "&api_key=" + os.Getenv("APIKEY") + "&limit=1&format=json"
 			resp, err := http.Get(us)
 			if err != nil {
 				log.Fatal(err)
