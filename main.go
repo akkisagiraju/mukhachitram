@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 
 	"github.com/joho/godotenv"
 )
@@ -50,16 +51,13 @@ func main() {
 	// loop through all the available directors inside pwd
 	for _, file := range files {
 		if file.IsDir() && file.Name() != ".git" {
-			var imgUrl string
 			// add an error handler if the length results is 0
-			for _, img := range fetchAlbumDetails(file.Name()).Results.Albummatches.Album[0].Image {
-				if img.Size == "extralarge" {
-					imgUrl = img.Text
-				}
-			}
-			fmt.Println(imgUrl)
+			imageSlice := fetchAlbumDetails(file.Name()).Results.Albummatches.Album[0].Image
+			imgUrl := imageSlice[len(imageSlice)-1].Text
+			downloadAndSaveImage(imgUrl, file.Name())
 		}
 	}
+
 }
 
 func fetchAlbumDetails(name string) AlbumResults {
@@ -69,7 +67,6 @@ func fetchAlbumDetails(name string) AlbumResults {
 	resp, err := http.Get(us)
 	if err != nil {
 		log.Fatal(err)
-		os.Exit(1)
 	}
 
 	body, _ := io.ReadAll(resp.Body)
@@ -79,4 +76,24 @@ func fetchAlbumDetails(name string) AlbumResults {
 	json.Unmarshal(body, &j)
 
 	return j
+}
+
+func downloadAndSaveImage(imgUrl string, dirName string) {
+	response, err := http.Get(imgUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer response.Body.Close()
+
+	imgFile, err := os.Create(filepath.Join(dirName, filepath.Base("cover.jpg")))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer imgFile.Close()
+
+	_, err = io.Copy(imgFile, response.Body)
+	if err != nil {
+		fmt.Println("Error:", err)
+		log.Fatal(err)
+	}
 }
