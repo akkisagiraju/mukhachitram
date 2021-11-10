@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -9,8 +10,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-
-	"github.com/joho/godotenv"
 )
 
 type AlbumResults struct {
@@ -34,25 +33,32 @@ type ImageStruct struct {
 }
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	var apiKey string
+
+	flag.StringVar(&apiKey, "apikey", "", "Enter your LastFM API key")
+
+	flag.Parse()
+
+	if len(apiKey) == 0 {
+		fmt.Printf("API key cannot be empty. \n")
+		fmt.Printf("Usage: ./mukhachitram -apikey yourapikey \n")
+		os.Exit(2)
 	}
-	// get pwd
+
 	pwd, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
-	// get all directories inside pwd
+
 	files, err := os.ReadDir(pwd)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// loop through all the available directors inside pwd
+
 	for _, file := range files {
-		if file.IsDir() && file.Name() != ".git" {
+		if file.IsDir() && file.Name()[0] != '.' {
 			// add an error handler if the length results is 0
-			imageSlice := fetchAlbumDetails(file.Name()).Results.Albummatches.Album[0].Image
+			imageSlice := fetchAlbumDetails(file.Name(), apiKey).Results.Albummatches.Album[0].Image
 			imgUrl := imageSlice[len(imageSlice)-1].Text
 			downloadAndSaveImage(imgUrl, file.Name())
 		}
@@ -60,9 +66,9 @@ func main() {
 
 }
 
-func fetchAlbumDetails(name string) AlbumResults {
+func fetchAlbumDetails(albumName string, apiKey string) AlbumResults {
 	apiUrl := "https://ws.audioscrobbler.com/2.0/"
-	us := apiUrl + "?method=album.search&album=" + url.QueryEscape(name) + "&api_key=" + os.Getenv("APIKEY") + "&limit=1&format=json"
+	us := apiUrl + "?method=album.search&album=" + url.QueryEscape(albumName) + "&api_key=" + apiKey + "&limit=1&format=json"
 
 	resp, err := http.Get(us)
 	if err != nil {
