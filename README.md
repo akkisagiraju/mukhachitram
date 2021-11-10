@@ -17,6 +17,7 @@ Download the executable file from the releases.
 
 ### To-do
 - [ ] Optimize using Go routines
+- [ ] Improve error messages and status indicators
 - [ ] Refactor
 - [ ] Support for choosing a service other than LastFM
 

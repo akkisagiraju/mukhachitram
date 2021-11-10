@@ -102,4 +102,6 @@ func downloadAndSaveImage(imgUrl string, dirName string) {
 		fmt.Println("Error:", err)
 		log.Fatal(err)
 	}
+
+	fmt.Printf("Saved album art of " + dirName + "\n")
 }
